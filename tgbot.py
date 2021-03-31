@@ -5,6 +5,8 @@ import pdb
 import sys
 import csapi
 import telebot
+from telebot import util
+import traceback
 import json
 
 config = json.load(open("bot_config.json"))
@@ -19,9 +21,20 @@ def start(message):
 def products_search(message):
     kw_str = "+".join(message.text.split(" ")[1:])
     url = base_url + "contracts/search/?productsearch=" + kw_str
-    result = csapi.query_clearspending(url)
-    pd_ds = csapi.pandas_ds(result)
-    bot.send_message(message.chat.id, text=csapi.tg_formatting(pd_ds), parse_mode="HTML")
+    
+    try:
+        result = csapi.query_clearspending(url)
+        if result == None:
+            bot.send_message(message.chat.id, "clearspending api выдало пустой ответ")
+            
+        pd_ds = csapi.pandas_ds(result)
+        text_to_send = csapi.tg_formatting(pd_ds)
+        pieces = util.split_string(text_to_send, 3000)
+        for piece in pieces:
+            bot.send_message(message.chat.id, piece, parse_mode="HTML")
+    except Exception as e:
+        traceback.print_exc()
+        bot.send_message(message.chat.id, str(e))
 
 @bot.message_handler(commands=['customers'])
 def customers_search(message):
