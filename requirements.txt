@@ -2,3 +2,4 @@ pandas
 requests
 ipywidgets
 pyTelegramBotAPI
+python-telegram-bot-pagination
